@@ -22,7 +22,7 @@
                 <div class="col-md-12 d-flex">
                     <h3>Insertion Sort Algorithm</h3>
                     <button type="button" class="btn btn-dark ml-auto" onclick="createRow()"><i
-                                class="fa fa-refresh"></i></button>
+                            class="fa fa-refresh"></i></button>
                 </div>
             </div>
         </div>
@@ -103,7 +103,7 @@
         let userSortArr = []
 
         let arr
-
+        let userUsesInsertionSortingAlgorithm = true
         createRow = function () {
             n = 6
             arr = new Array(n)
@@ -118,6 +118,7 @@
                     }
                 }
             }
+            userUsesInsertionSortingAlgorithm = true
             newRowsCounter = 0
             userSortArr = []
             trHistroy = $('#sort-table').find('thead').find('tr')
@@ -179,6 +180,7 @@
                         if ((newUserRow.x != nextInsertionRow.x) || (newUserRow.y != nextInsertionRow.y)) {
                             changedCellColor = 'table-danger'
                             changedCellTextColor = 'text-white'
+                            userUsesInsertionSortingAlgorithm = false
                         }
                     } else {
                         return;
@@ -190,16 +192,22 @@
                     draggable.swap(droppable);
                     previousRow.addClass('history').insertAfter('#sort-table .history:last');
                     newRowsCounter++
-                    if (userSortArr.length == insertionSortArr.length) {
-                        let resultedArr = []
-                        let resultedCells = $(this)[0].parentElement.children
-                        for (i = 0; i < resultedCells.length - 1; i++) {
-                            resultedArr.push(parseInt(resultedCells[i].innerHTML))
-                        }
-                        if (JSON.stringify(arr) == JSON.stringify(resultedArr)) {
+
+                    let resultedArr = []
+                    let resultedCells = $(this)[0].parentElement.children
+                    for (i = 0; i < resultedCells.length - 1; i++) {
+                        resultedArr.push(parseInt(resultedCells[i].innerHTML))
+                    }
+                    let message
+                    if (JSON.stringify(arr) == JSON.stringify(resultedArr)) {
+                        if (userUsesInsertionSortingAlgorithm) {
                             message = '<p class="text-success" id="result-message">Success!</p>'
-                            $('#table-container').append(message)
                         } else {
+                            message = '<p class="text-danger" id="result-message">The array is sorted, but not with insertion sort algorithm.</p>'
+                        }
+                        $('#table-container').append(message)
+                    } else {
+                        if (userSortArr.length == insertionSortArr.length) {
                             message = '<p class="text-danger" id="result-message">Fail.</p>'
                             $('#table-container').append(message)
                         }
