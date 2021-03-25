@@ -13,6 +13,7 @@
             src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"
             integrity="sha256-eGE6blurk5sHj+rmkfsGYeKyZx3M4bG+ZlFyA7Kns7E="
             crossorigin="anonymous"></script>
+    <script src="jquery.ui.touch-punch.min.js"></script>
 </head>
 <body>
 <div class="container" id="table-container">
@@ -137,6 +138,9 @@
             }
             newRow += '</tr>'
             $("#sort-table > tbody").append(newRow);
+
+
+
             insertionSort(arr)
 
             $(".dragdrop").draggable({
@@ -156,6 +160,10 @@
                 activeClass: "ui-state-hover",
                 hoverClass: "ui-state-active",
                 drop: function (event, ui) {
+                    if ($('#table-container').find('#result-message')[0] != undefined){
+                        return
+                    }
+
                     var draggable = ui.draggable, droppable = $(this),
                         dragPos = draggable.position(), dropPos = droppable.position();
 
