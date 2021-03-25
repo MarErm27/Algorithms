@@ -1,0 +1,218 @@
+<html lang="en">
+<head>
+    <title>Jquery Table Row Draggable and Sortable</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <link href="http://maxcdn.bootstrapcdn.com/font-awesome/4.1.0/css/font-awesome.min.css" rel="stylesheet">
+    <script
+            src="https://code.jquery.com/jquery-3.6.0.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
+            crossorigin="anonymous"></script>
+    <script
+            src="https://code.jquery.com/ui/1.12.0/jquery-ui.min.js"
+            integrity="sha256-eGE6blurk5sHj+rmkfsGYeKyZx3M4bG+ZlFyA7Kns7E="
+            crossorigin="anonymous"></script>
+</head>
+<body>
+<div class="container" id="table-container">
+    <div class="container">
+        <div class="get-quote">
+            <div class="row">
+                <div class="col-md-12 d-flex">
+                    <h3>Insertion Sort Algorithm</h3>
+                    <button type="button" class="btn btn-dark ml-auto" onclick="createRow()"><i
+                                class="fa fa-refresh"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <table class="table table-white bg-dark table-bordered table-hover" id="sort-table">
+        <thead>
+        <tr class="text-white history">
+            <th>1</th>
+            <th>2</th>
+            <th>3</th>
+            <th>4</th>
+            <th>5</th>
+            <th>6</th>
+        </tr>
+        </thead>
+        <tbody class="numbers-to-sort">
+        <tr class="text-white">
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script type="text/javascript">
+    let createRow
+    (function () {
+        function between(min, max) {
+            return Math.floor(
+                Math.random() * (max - min + 1) + min
+            )
+        }
+
+        jQuery.fn.swap = function (b) {
+            // method from: http://blog.pengoworks.com/index.cfm/2008/9/24/A-quick-and-dirty-swap-method-for-jQuery
+            b = jQuery(b)[0];
+            var a = this[0];
+            var t = a.parentNode.insertBefore(document.createTextNode(''), a);
+            b.parentNode.insertBefore(a, b);
+            t.parentNode.insertBefore(b, t);
+            t.parentNode.removeChild(t);
+            return this;
+        };
+
+        let previousRow
+        $.fn.insertIndex = function (i) {
+            // method from https://stackoverflow.com/questions/3562493/jquery-insert-div-as-certain-index from Ash Blue
+            // The element we want to swap with
+            var $target = this.parent().children().eq(i);
+
+            // Determine the direction of the appended index so we know what side to place it on
+            if (this.index() > i) {
+                $target.before(this);
+            } else {
+                $target.after(this);
+            }
+
+            return this;
+        };
+
+
+        let insertionSortArr = []
+
+        function insertionSort(A) {
+            insertionSortArr = []
+            for (let i = 1; i < A.length; i++) {
+                let key = A[i]
+                let j = i - 1
+                while ((j > -1) && (A[j] > key)) {
+                    A[j + 1] = A[j]
+                    insertionSortArr.push({x: j, y: j + 1})
+                    j--
+                }
+                A[j + 1] = key
+            }
+        }
+
+        let newRowsCounter = 0
+        let userSortArr = []
+
+        let arr
+
+        createRow = function () {
+            n = 6
+            arr = new Array(n)
+            let arrSorted = true
+            while (arrSorted) {
+                for (i = 0; i < arr.length; i++) {
+                    arr[i] = between(0, 9)
+                    if (arrSorted && (i > 0)) {
+                        if (arr[i] < arr[i - 1]) {
+                            arrSorted = false
+                        }
+                    }
+                }
+            }
+            newRowsCounter = 0
+            userSortArr = []
+            trHistroy = $('#sort-table').find('thead').find('tr')
+            if (trHistroy.length > 1) {
+                for (i = 1; i < trHistroy.length; i++) {
+                    trHistroy.eq(i).remove()
+                }
+            }
+
+            node = $('.numbers-to-sort')[0]
+            node.innerHTML = ''
+            $('#result-message').remove()
+            newRow = '<tr class="text-white">'
+            for (i = 0; i < arr.length; i++) {
+                newRow += '<td class="dragdrop">' + arr[i] + '</td>'
+            }
+            newRow += '</tr>'
+            $("#sort-table > tbody").append(newRow);
+            insertionSort(arr)
+
+            $(".dragdrop").draggable({
+                revert: true,
+                revertDuration: 0,
+                helper: "clone",
+                start: function (event, ui) {
+                    previousRow = $($(this)[0].parentElement).clone();
+                },
+                stop: function (event, ui) {
+                    previousRow.find('td.ui-draggable-dragging').remove();
+                }
+            });
+
+            $(".dragdrop").droppable({
+                accept: ".dragdrop",
+                activeClass: "ui-state-hover",
+                hoverClass: "ui-state-active",
+                drop: function (event, ui) {
+                    var draggable = ui.draggable, droppable = $(this),
+                        dragPos = draggable.position(), dropPos = droppable.position();
+
+                    draggable.css({
+                        left: dropPos.left + 'px',
+                        top: dropPos.top + 'px'
+                    });
+
+                    droppable.css({
+                        left: dragPos.left + 'px',
+                        top: dragPos.top + 'px'
+                    });
+
+                    let indexDragable = ui.draggable.index();
+                    let indexDropable = $(this).index();
+                    userSortArr.push({x: indexDropable, y: indexDragable})
+                    let changedCellColor = 'table-warning'
+                    let changedCellTextColor = 'text-dark'
+                    if (insertionSortArr.length > newRowsCounter) {
+                        let newUserRow = userSortArr[newRowsCounter]
+                        let nextInsertionRow = insertionSortArr[newRowsCounter]
+                        if ((newUserRow.x != nextInsertionRow.x) || (newUserRow.y != nextInsertionRow.y)) {
+                            changedCellColor = 'table-danger'
+                            changedCellTextColor = 'text-white'
+                        }
+                    } else {
+                        return;
+                    }
+                    previousRow[0].children[indexDragable].classList.add(changedCellColor)
+                    previousRow[0].children[indexDragable].classList.add(changedCellTextColor)
+                    previousRow[0].children[indexDropable].classList.add(changedCellColor)
+                    previousRow[0].children[indexDropable].classList.add(changedCellTextColor)
+                    draggable.swap(droppable);
+                    previousRow.addClass('history').insertAfter('#sort-table .history:last');
+                    newRowsCounter++
+                    if (userSortArr.length == insertionSortArr.length) {
+                        let resultedArr = []
+                        let resultedCells = $(this)[0].parentElement.children
+                        for (i = 0; i < resultedCells.length - 1; i++) {
+                            resultedArr.push(parseInt(resultedCells[i].innerHTML))
+                        }
+                        if (JSON.stringify(arr) == JSON.stringify(resultedArr)) {
+                            message = '<p class="text-success" id="result-message">Success!</p>'
+                            $('#table-container').append(message)
+                        } else {
+                            message = '<p class="text-danger" id="result-message">Fail.</p>'
+                            $('#table-container').append(message)
+                        }
+                    }
+                }
+            });
+        }
+
+        $(document).ready(function () {
+            createRow()
+        });
+
+    })();
+</script>
+</body>
+</html>
